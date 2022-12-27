@@ -1,0 +1,1107 @@
+openapi: 3.0.0
+info:
+  title: Auth Api
+  version: v1
+servers:
+  - url: http://127.0.0.1:8000/api
+paths:
+  /verify_token/:
+    post:
+      tags:
+        - "Auth"
+      security:
+        - BearerAuth: []
+      description: "Проверка разрешений"
+
+      parameters:
+        - $ref: '#/components/parameters/request_id'
+
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                permissions:
+                  description: Список требуемых разрешений
+                  type: array
+                  items:
+                    schema:
+                      type: string
+                  
+      responses:
+        "200":
+          description: "OK"
+        "400":
+          $ref: '#/components/responses/BadRequest'
+        "401":
+          $ref: '#/components/responses/Unauthorized'
+        "429":
+          $ref: '#/components/responses/TooManyRequests'
+        "5XX":
+          $ref: '#/components/responses/ServerError'
+
+  /login/yandex/:
+    get:
+      tags:
+        - "Login"
+      description: "Вход через Yandex"
+
+      parameters:
+        - $ref: '#/components/parameters/request_id'
+                  
+      responses:
+        "307":
+          description: "Redirect"
+        "429":
+          $ref: '#/components/responses/TooManyRequests'
+        "5XX":
+          $ref: '#/components/responses/ServerError'
+
+  /login/google/:
+    get:
+      tags:
+        - "Login"
+      description: "Вход через Google"
+
+      parameters:
+        - $ref: '#/components/parameters/request_id'
+                  
+      responses:
+        "307":
+          description: "Redirect"
+        "429":
+          $ref: '#/components/responses/TooManyRequests'
+        "5XX":
+          $ref: '#/components/responses/ServerError'
+
+  /verification_code/:
+    get:
+      tags:
+        - "Auth"
+      description: "Получение кода подтвеждения от социальных сетей. Создание аккаунта, привязанного к социальной сети."
+
+      parameters:
+        - in: query
+          name: state
+          schema:
+            type: string
+          description: ID операции
+
+        - in: query
+          name: code
+          schema:
+            type: string
+          description: Код подтверждения
+
+        - $ref: '#/components/parameters/request_id'
+      
+      responses:
+        "200":
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Token"
+        "400":
+          $ref: '#/components/responses/BadRequest'
+        "429":
+          $ref: '#/components/responses/TooManyRequests'
+        "5XX":
+          $ref: '#/components/responses/ServerError'
+
+  /register/:
+    post:
+      tags:
+        - "Account"
+      description: "Регистрация нового пользователя"
+
+      parameters:
+        - $ref: '#/components/parameters/request_id'
+
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                login:
+                  type: string
+                  description: Имя пользователя
+                password:
+                  type: string
+                  description: Пароль
+                email:
+                  type: string
+                  description: E-mail
+                first_name:
+                  type: string
+                  description: Имя
+                last_name:
+                  type: string
+                  description: Фамилия
+      responses:
+        "201":
+          description: "Created"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "400":
+          $ref: '#/components/responses/BadRequest'
+        "429":
+          $ref: '#/components/responses/TooManyRequests'
+        "5XX":
+          $ref: '#/components/responses/ServerError'
+  
+  /v1/account/:
+    get:
+      tags:
+        - "Account"
+      security:
+        - BearerAuth: []
+      description: "Получение данных пользователя"
+
+      parameters:
+        - $ref: '#/components/parameters/request_id'
+
+      responses:
+        "200":
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        "401":
+          $ref: '#/components/responses/Unauthorized'
+        "404":
+          $ref: '#/components/responses/NotFound'
+        "429":
+          $ref: '#/components/responses/TooManyRequests'
+        "5XX":
+          $ref: '#/components/responses/ServerError'
+    
+    put:
+      tags:
+        - "Account"
+      security:
+        - BearerAuth: []
+      description: "Изменение данных пользователя"
+
+      parameters:
+        - $ref: '#/components/parameters/request_id'
+
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                login:
+                  type: string
+                  description: Имя пользователя
+                password:
+                  type: string
+                  description: Пароль
+                email:
+                  type: string
+                  description: E-mail
+                first_name:
+                  type: string
+                  description: Имя
+                last_name:
+                  type: string
+                  description: Фамилия
+        
+      responses:
+        "201":
+          description: "Updated"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        "400":
+          $ref: '#/components/responses/BadRequest'
+        "401":
+          $ref: '#/components/responses/Unauthorized'
+        "429":
+          $ref: '#/components/responses/TooManyRequests'
+        "5XX":
+          $ref: '#/components/responses/ServerError'
+
+  /v1/users/{user_id}/:
+    get:
+      tags:
+        - "Users"
+      security:
+        - BearerAuth: []
+      description: "Информация о пользователе"
+      parameters:
+        - $ref: '#/components/parameters/user_id'
+        - $ref: '#/components/parameters/request_id'
+        
+      responses:
+        "200":
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/User"
+        "401":
+          $ref: '#/components/responses/Unauthorized'
+        "429":
+          $ref: '#/components/responses/TooManyRequests'
+        "5XX":
+          $ref: '#/components/responses/ServerError'
+          
+  /login/:
+    post:
+      tags:
+        - "Login"
+      description: "Вход пользователя"
+
+      parameters:
+        - $ref: '#/components/parameters/request_id'
+
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                login:
+                  type: string
+                  description: Имя пользователя
+                password:
+                  type: string
+                  description: Пароль
+      responses:
+        "200":
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Token"
+        "400":
+          $ref: '#/components/responses/BadRequest'
+        "401":
+          $ref: '#/components/responses/Unauthorized'
+        "429":
+          $ref: '#/components/responses/TooManyRequests'
+        "5XX":
+          $ref: '#/components/responses/ServerError'
+          
+  /refresh/:
+    get:
+      tags:
+        - "Login"
+      description: "Обновление JWT токена"
+
+      parameters:
+        - $ref: '#/components/parameters/request_id'
+      
+      responses:
+        "200":
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Token"
+        "401":
+          $ref: '#/components/responses/Unauthorized'
+        "429":
+          $ref: '#/components/responses/TooManyRequests'
+        "5XX":
+          $ref: '#/components/responses/ServerError'
+  
+  /logout/:
+    post:
+      tags:
+        - "Login"
+      security:
+        - BearerAuth: []
+      description: "Выход пользователя"
+
+      parameters:
+        - $ref: '#/components/parameters/request_id'
+
+      responses:
+        "204":
+          description: "Logged out"
+        "401":
+          $ref: '#/components/responses/Unauthorized'
+        "429":
+          $ref: '#/components/responses/TooManyRequests'
+        "5XX":
+          $ref: '#/components/responses/ServerError'
+  
+  /logout/all/:
+    post:
+      tags:
+        - "Login"
+      security:
+        - BearerAuth: []
+      description: "Выход пользователя на всех устройствах"
+
+      parameters:
+        - $ref: '#/components/parameters/request_id'
+
+      responses:
+        "204":
+          description: "Logged out"
+        "401":
+          $ref: '#/components/responses/Unauthorized'
+        "429":
+          $ref: '#/components/responses/TooManyRequests'
+        "5XX":
+          $ref: '#/components/responses/ServerError'
+  
+  /v1/login_history/:
+    get:
+      tags:
+        - "Login"
+      security:
+        - BearerAuth: []
+      description: "История входов пользователя"
+
+      parameters:
+        - $ref: '#/components/parameters/request_id'
+      
+        - in: query
+          name: page[number]
+          schema:
+            type: integer
+            default: 1
+          description: Номер страницы с результатами
+
+        - in: query
+          name: page[size]
+          schema:
+            type: integer
+            default: 50
+          description: Кол-во результатов на странице
+
+      responses:
+        "200":
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LoginHistory"
+        "401":
+          $ref: '#/components/responses/Unauthorized'
+        "429":
+          $ref: '#/components/responses/TooManyRequests'
+        "5XX":
+          $ref: '#/components/responses/ServerError'
+  
+  /v1/roles/:
+    get:
+      tags:
+        - "Roles"
+      security:
+        - BearerAuth: []
+      description: "Список ролей"
+
+      parameters:
+        - $ref: '#/components/parameters/request_id'
+
+      responses:
+        "200":
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/RoleWithPermissions"
+        "401":
+          $ref: '#/components/responses/Unauthorized'
+        "429":
+          $ref: '#/components/responses/TooManyRequests'
+        "5XX":
+          $ref: '#/components/responses/ServerError'
+
+    post:
+      tags:
+        - "Roles"
+      security:
+        - BearerAuth: []
+      description: "Добавить роль"
+
+      parameters:
+        - $ref: '#/components/parameters/request_id'
+
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  description: Наименование роли
+      responses:
+        "201":
+          description: "Created"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RoleWithPermissions"
+        "400":
+          $ref: '#/components/responses/BadRequest'
+        "401":
+          $ref: '#/components/responses/Unauthorized'
+        "429":
+          $ref: '#/components/responses/TooManyRequests'
+        "5XX":
+          $ref: '#/components/responses/ServerError'
+
+  /v1/roles/{role_id}:  
+    put:
+      tags:
+        - "Roles"
+      security:
+        - BearerAuth: []
+      description: "Изменение роли"
+
+      parameters:
+        - $ref: '#/components/parameters/request_id'
+        - $ref: '#/components/parameters/role_id'
+
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  description: Наименование роли
+      responses:
+        "201":
+          description: "Updated"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RoleWithPermissions"
+        "400":
+          $ref: '#/components/responses/BadRequest'
+        "401":
+          $ref: '#/components/responses/Unauthorized'
+        "429":
+          $ref: '#/components/responses/TooManyRequests'
+        "5XX":
+          $ref: '#/components/responses/ServerError'
+
+    delete:
+      tags:
+        - "Roles"
+      security:
+        - BearerAuth: []
+      description: "Удалить роль"
+
+      parameters:
+        - $ref: '#/components/parameters/request_id'
+        - $ref: '#/components/parameters/role_id'
+        
+      responses:
+        "204":
+          description: "Deleted"
+        "401":
+          $ref: '#/components/responses/Unauthorized'
+        "429":
+          $ref: '#/components/responses/TooManyRequests'
+        "5XX":
+          $ref: '#/components/responses/ServerError'
+
+  /v1/roles/{role_id}/permissions:
+    post:
+      tags:
+        - "Roles"
+      security:
+        - BearerAuth: []
+      description: "Добавить разрешение к роли"
+
+      parameters:
+        - $ref: '#/components/parameters/request_id'
+        - $ref: '#/components/parameters/role_id'
+      
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                id:
+                  type: number
+                  description: ID разрешения
+      
+      responses:
+        "201":
+          description: "Created"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Role"
+        "400":
+          $ref: '#/components/responses/BadRequest'
+        "401":
+          $ref: '#/components/responses/Unauthorized'
+        "429":
+          $ref: '#/components/responses/TooManyRequests'
+        "5XX":
+          $ref: '#/components/responses/ServerError'
+
+  /v1/roles/{role_id}/permissions/{permission_id}:     
+    delete:
+      tags:
+        - "Roles"
+      security:
+        - BearerAuth: []
+      description: "Удалить разрешение из роли"
+
+      parameters:
+        - $ref: '#/components/parameters/request_id'
+        - $ref: '#/components/parameters/permission_id'
+        - $ref: '#/components/parameters/role_id'
+        
+      responses:
+        "204":
+          description: "Deleted"
+        "401":
+          $ref: '#/components/responses/Unauthorized'
+        "429":
+          $ref: '#/components/responses/TooManyRequests'
+        "5XX":
+          $ref: '#/components/responses/ServerError'
+
+
+
+
+  /v1/users/{user_id}/roles:
+    post:
+      tags:
+        - "Users"
+      security:
+        - BearerAuth: []
+      description: "Добавить роль пользователю"
+
+      parameters:
+        - $ref: '#/components/parameters/request_id'
+        - $ref: '#/components/parameters/user_id'
+      
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                id:
+                  type: number
+                  description: ID роли
+      
+      responses:
+        "201":
+          description: "Created"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "400":
+          $ref: '#/components/responses/BadRequest'
+        "401":
+          $ref: '#/components/responses/Unauthorized'
+        "429":
+          $ref: '#/components/responses/TooManyRequests'
+        "5XX":
+          $ref: '#/components/responses/ServerError'
+
+  /v1/users/{user_id}/roles/{role_id}:      
+    delete:
+      tags:
+        - "Users"
+      security:
+        - BearerAuth: []
+      description: "Удалить роль из пользователя"
+
+      parameters:
+        - $ref: '#/components/parameters/request_id'
+        - $ref: '#/components/parameters/user_id'
+        - $ref: '#/components/parameters/role_id'
+        
+      responses:
+        "204":
+          description: "Deleted"
+        "401":
+          $ref: '#/components/responses/Unauthorized'
+        "429":
+          $ref: '#/components/responses/TooManyRequests'
+        "5XX":
+          $ref: '#/components/responses/ServerError'
+
+  
+  /v1/devices/{device_id}:
+    put:
+      tags:
+        - "Devices"
+      security:
+        - BearerAuth: []
+      description: "Пользователь может установить сделать свое устройство разрешенным или запрещенным"
+
+      parameters:
+        - $ref: '#/components/parameters/request_id'
+        - $ref: '#/components/parameters/device_id'
+      
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                is_allowed:
+                  type: boolean
+                  description: Можно ли пользоваться устройством
+        
+      responses:
+        "201":
+          description: "Updated"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Device"
+        "400":
+          $ref: '#/components/responses/BadRequest'
+        "401":
+          $ref: '#/components/responses/Unauthorized'
+        "429":
+          $ref: '#/components/responses/TooManyRequests'
+        "5XX":
+          $ref: '#/components/responses/ServerError'
+
+  /v1/permissions/:
+    get:
+      tags:
+        - "Permissions"
+      security:
+        - BearerAuth: []
+      description: "Список разрешений"
+
+      parameters:
+        - $ref: '#/components/parameters/request_id'
+
+      responses:
+        "200":
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Permission"
+        "401":
+          $ref: '#/components/responses/Unauthorized'
+        "429":
+          $ref: '#/components/responses/TooManyRequests'
+        "5XX":
+          $ref: '#/components/responses/ServerError'
+
+    post:
+      tags:
+        - "Permissions"
+      security:
+        - BearerAuth: []
+      description: "Добавить разрешение"
+
+      parameters:
+        - $ref: '#/components/parameters/request_id'
+
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  description: Наименование разрешения
+      responses:
+        "201":
+          description: "Created"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Permission"
+        "400":
+          $ref: '#/components/responses/BadRequest'
+        "401":
+          $ref: '#/components/responses/Unauthorized'
+        "429":
+          $ref: '#/components/responses/TooManyRequests'
+        "5XX":
+          $ref: '#/components/responses/ServerError'
+
+  /v1/permissions/{permission_id}:  
+    put:
+      tags:
+        - "Permissions"
+      security:
+        - BearerAuth: []
+      description: "Изменение разрешения"
+
+      parameters:
+        - $ref: '#/components/parameters/request_id'
+        - $ref: '#/components/parameters/permission_id'
+
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  description: Наименование разрешения
+      responses:
+        "201":
+          description: "Updated"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Permission"
+        "400":
+          $ref: '#/components/responses/BadRequest'
+        "401":
+          $ref: '#/components/responses/Unauthorized'
+        "429":
+          $ref: '#/components/responses/TooManyRequests'
+        "5XX":
+          $ref: '#/components/responses/ServerError'
+
+    delete:
+      tags:
+        - "Permissions"
+      security:
+        - BearerAuth: []
+      description: "Удалить разрешение"
+
+      parameters:
+        - $ref: '#/components/parameters/request_id'
+        - $ref: '#/components/parameters/role_id'
+        
+      responses:
+        "204":
+          description: "Deleted"
+        "401":
+          $ref: '#/components/responses/Unauthorized'
+        "429":
+          $ref: '#/components/responses/TooManyRequests'
+        "5XX":
+          $ref: '#/components/responses/ServerError'
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+
+  parameters:
+    role_id:
+      in: path
+      name: role_id
+      required: true
+      schema:
+        type: number
+      description: ID роли
+
+    device_id:
+      in: path
+      name: device_id
+      required: true
+      schema:
+        type: number
+      description: ID устройства
+
+    user_id:
+      in: path
+      name: user_id
+      required: true
+      schema:
+        type: number
+      description: ID пользователя
+
+    permission_id:
+      in: path
+      name: permission_id
+      required: true
+      schema:
+        type: number
+      description: ID разрешения
+
+    request_id:
+      in: header
+      name: X-Request-Id
+      required: true
+      schema:
+        type: string
+      description: ID запроса
+
+  schemas:
+    Token:
+      type: object
+      properties:
+        access_token:
+          type: string
+          description: Токен для доступа
+        refresh_token:
+          type: string
+          description: Токен для обновления
+
+    User:
+      type: object
+      properties:
+        id:
+          type: number
+          description: ID
+        login:
+          type: string
+          description: Имя пользователя
+        email:
+          type: string
+          description: E-mail
+        first_name:
+          type: string
+          description: Имя
+        last_name:
+          type: string
+          description: Фамилия
+        roles:
+          type: array
+          items:
+            $ref: "#/components/schemas/Role"
+        permissions:
+          type: array
+          items:
+            $ref: "#/components/schemas/Permission"
+
+    Role:
+      type: object
+      properties:
+        id:
+          type: number
+          description: ID
+        name:
+          type: string
+          description: Наименование
+
+    RoleWithPermissions:
+      type: object
+      properties:
+        id:
+          type: number
+          description: ID
+        name:
+          type: string
+          description: Наименование
+        permissions:
+          type: array
+          items:
+            $ref: "#/components/schemas/Permission"      
+
+    Permission:
+      type: object
+      properties:
+        id:
+          type: number
+          description: ID
+        name:
+          type: string
+          description: Наименование
+
+    Device:
+      type: object
+      properties:
+        id:
+          type: number
+          description: ID
+        fingerprint:
+          type: string
+          description: Отпечаток устройства
+
+
+    LoginHistory:
+      type: object
+      properties:
+        device:
+          $ref: "#/components/schemas/Device"
+        logged_at:
+          type: string
+          format: date-time
+          description: Время входа
+        is_allowed:
+          type: boolean
+          description: Возможность входа с устройства
+
+    BadRequestError:
+      type: object
+      properties:
+        error:
+          type: string
+          const: "B001"
+        message:
+          type: string
+          description: Сообщение об ошибке
+    
+    NotUniqueError:
+      type: object
+      properties:
+        error:
+          type: string
+          const: "B002"
+        message:
+          type: string
+          description: Сообщение об ошибке
+
+    ModelNotFoundError:
+      type: object
+      properties:
+        error:
+          type: string
+          const: "B003"
+        message:
+          type: string
+          description: Сообщение об ошибке
+    
+    AuthorizationTokenMissedError:
+      type: object
+      properties:
+        error:
+          type: string
+          const: "A001"
+        message:
+          type: string
+          description: Сообщение об ошибке
+
+    AuthorizationTokenOutdatedError:
+      type: object
+      properties:
+        error:
+          type: string
+          const: "A002"
+        message:
+          type: string
+          description: Сообщение об ошибке
+
+    TokenSignatureError:
+      type: object
+      properties:
+        error:
+          type: string
+          const: "A003"
+        message:
+          type: string
+          description: Сообщение об ошибке
+    
+    LoginPasswordError:
+      type: object
+      properties:
+        error:
+          type: string
+          const: "A004"
+        message:
+          type: string
+          description: Сообщение об ошибке
+
+    NoPermissionError:
+      type: object
+      properties:
+        error:
+          type: string
+          const: "A005"
+        message:
+          type: string
+          description: Сообщение об ошибке
+
+    
+    TokenPayloadError:
+      type: object
+      properties:
+        error:
+          type: string
+          const: "A006"
+        message:
+          type: string
+          description: Сообщение об ошибке
+
+    OAuthAuthenticationError:
+      type: object
+      properties:
+        error:
+          type: string
+          const: "A007"
+        message:
+          type: string
+          description: Сообщение об ошибке
+
+    TooManyRequestsError:
+      type: object
+      properties:
+        error:
+          type: string
+          const: "C001"
+        message:
+          type: string
+          description: Сообщение об ошибке
+
+  responses:
+    BadRequest:
+      description: Bad request.
+      content:
+        application/json:
+          schema:
+            oneOf:
+              - $ref: '#/components/schemas/BadRequestError'
+              - $ref: '#/components/schemas/NotUniqueError'
+              - $ref: '#/components/schemas/ModelNotFoundError'
+
+
+    Unauthorized:
+      description: Authorization information is missing or invalid.
+      content:
+        application/json:
+          schema:
+            oneOf:
+              - $ref: '#/components/schemas/AuthorizationTokenMissedError'
+              - $ref: '#/components/schemas/AuthorizationTokenOutdatedError'
+              - $ref: '#/components/schemas/TokenSignatureError'
+              - $ref: '#/components/schemas/LoginPasswordError'
+              - $ref: '#/components/schemas/NoPermissionError'
+              - $ref: '#/components/schemas/TokenPayloadError'
+              - $ref: '#/components/schemas/OAuthAuthenticationError'
+
+    TooManyRequests:
+      description: Too many requests.
+      content:
+        application/json:
+          schema:
+            oneOf:
+              - $ref: '#/components/schemas/TooManyRequestsError'
+    
+    NotFound:
+      description: Url not found error.
+
+    ServerError:
+      description: Unexpected error.
