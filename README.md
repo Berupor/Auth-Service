@@ -1,27 +1,27 @@
 
-## Переменные окружения
-Создайте файл .env.prod и заполните его. Используйте .env.prod.example в качестве примера.
+## Environment variables
+Create a .env.prod file and populate it. Use .env.prod.example as an example.
 
 ## Docker
-Запустите Docker контейнеры:
+Run Docker containers:
 ```console
 make up
 ```
 
-Выполнить миграции:
+Run migrations:
 ```console
 make migrate
 ```
 
-Создать суперпользователя:
+Create superuser:
 ```console
 make createsuperuser
 ```
 
-## Сервис авторизации
-API доступно по адресу:
+## Auth Service
+The API is available at:
 - $HOST/auth/api/
 
 
-API доступно по адресу:
+The API is available at:
 - $HOST/movies/api/
